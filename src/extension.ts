@@ -1,5 +1,18 @@
 import * as vscode from "vscode";
 
+function getFileName(editor?: vscode.TextEditor) {
+  return editor?.document.fileName;
+}
+
+function getFileUri(editor?: vscode.TextEditor) {
+  return editor?.document.uri;
+}
+
+function buildFileId(line: Number, editor?: vscode.TextEditor) {
+  const uri = getFileUri(editor);
+  return `${uri?.path}___line___${line}`;
+}
+
 export function activate(context: vscode.ExtensionContext) {
   let setMark = vscode.commands.registerCommand(
     "extension.setMark",
@@ -14,26 +27,35 @@ export function activate(context: vscode.ExtensionContext) {
 
         vscode.window.showInformationMessage(`Line: ${line}`);
 
-        const linesFromState: Number[] = context.workspaceState.get(
-          "lines",
+        const marksFromState: Number[] = context.workspaceState.get(
+          "marks",
           []
         );
-        await context.workspaceState.update("lines", [
-          ...new Set([...linesFromState, line])
+        const newMark = {
+          id: buildFileId(line, editor),
+          file: {
+            name: getFileName(editor),
+            uri: getFileUri(editor)
+          },
+          line
+        };
+        await context.workspaceState.update("marks", [
+          ...marksFromState,
+          newMark
         ]);
       } else {
         vscode.window.showInformationMessage(`Couldn't create a mark.`);
       }
 
-      const savedLines = await context.workspaceState.get("lines");
-      console.log(savedLines);
+      const savedMarks = await context.workspaceState.get("marks");
+      console.log(savedMarks);
     }
   );
 
   let clearMarks = vscode.commands.registerCommand(
     "extension.clearMarks",
     async () => {
-      await context.workspaceState.update("lines", []);
+      await context.workspaceState.update("marks", []);
       vscode.window.showInformationMessage("All marks cleared successfully.");
     }
   );
