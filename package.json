@@ -10,7 +10,8 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.setMark"
+		"onCommand:extension.setMark",
+		"onCommand:extension.clearMarks"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -18,6 +19,10 @@
 			{
 				"command": "extension.setMark",
 				"title": "[onemark]: Set Mark"
+			},
+			{
+				"command": "extension.clearMarks",
+				"title": "[onemark]: Clear All Marks"
 			}
 		]
 	},
