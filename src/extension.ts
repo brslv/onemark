@@ -61,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
           newMark
         ]);
       } else {
-        vscode.window.showInformationMessage(`Couldn't create a mark.`);
+        vscode.window.showErrorMessage(`Couldn't create a mark.`);
       }
 
       const savedMarks = await context.workspaceState.get("marks");
@@ -77,13 +77,36 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  let listMarks = vscode.commands.registerCommand("extension.listMarks", () => {
-    const marks = context.workspaceState.get("marks", []);
-    const marksToBeListed = marks.map((mark: Mark) => {
-      return `${mark.name} (${mark.file.name} [${mark.line}])`;
-    });
-    vscode.window.showQuickPick(marksToBeListed);
-  });
+  let listMarks = vscode.commands.registerCommand(
+    "extension.listMarks",
+    async () => {
+      const marks = context.workspaceState.get("marks", []);
+      const marksToBeListed = marks.map((mark: Mark) => {
+        return `${mark.name} (${mark.file.name} [${mark.line}])`;
+      });
+      const choice = await vscode.window.showQuickPick(marksToBeListed);
+      if (choice) {
+        const pattern = /(\/.+?(\s(?=\[)))/gim;
+        const match = choice.match(pattern);
+        if (match && match.length) {
+          const mark: Mark | undefined = marks.find((mark: Mark) => {
+            return mark.file.name?.trim() === match[0].trim();
+          });
+          if (mark) {
+            const fileUri = mark!.file.uri;
+
+            if (fileUri !== undefined) {
+              vscode.workspace.openTextDocument(fileUri.fsPath).then(doc => {
+                vscode.window.showTextDocument(doc);
+              });
+            }
+          }
+        } else {
+          vscode.window.showErrorMessage("Unable to open the bookmark.");
+        }
+      }
+    }
+  );
 
   context.subscriptions.push(setMark, clearMarks, listMarks);
 }
