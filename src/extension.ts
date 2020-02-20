@@ -1,5 +1,14 @@
 import * as vscode from "vscode";
 
+type Mark = {
+  id: string;
+  file: {
+    name: string | undefined;
+    uri: vscode.Uri | undefined;
+  };
+  line: Number;
+};
+
 function getFileName(editor?: vscode.TextEditor) {
   return editor?.document.fileName;
 }
@@ -31,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
           "marks",
           []
         );
-        const newMark = {
+        const newMark: Mark = {
           id: buildFileId(line, editor),
           file: {
             name: getFileName(editor),
@@ -59,6 +68,14 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage("All marks cleared successfully.");
     }
   );
+
+  let listMarks = vscode.commands.registerCommand("extension.listMarks", () => {
+    const marks = context.workspaceState.get("marks", []);
+    const marksToBeListed = marks.map((mark: Mark) => {
+      return `${mark.file.name} [${mark.line}]`;
+    });
+    vscode.window.showQuickPick(marksToBeListed);
+  });
 
   context.subscriptions.push(setMark, clearMarks);
 }
