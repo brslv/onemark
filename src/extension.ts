@@ -7,7 +7,7 @@ type Mark = {
     name: string | undefined;
     uri: vscode.Uri | undefined;
   };
-  line: Number;
+  line: number;
 };
 
 function getFileName(editor?: vscode.TextEditor) {
@@ -18,7 +18,7 @@ function getFileUri(editor?: vscode.TextEditor) {
   return editor?.document.uri;
 }
 
-function buildFileId(line: Number, editor?: vscode.TextEditor) {
+function buildFileId(line: number, editor?: vscode.TextEditor) {
   const uri = getFileUri(editor);
   return `${uri?.path}___line___${line}`;
 }
@@ -43,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
         const position = editor.selection.active;
         const line = position.line;
 
-        const marksFromState: Number[] = context.workspaceState.get(
+        const marksFromState: number[] = context.workspaceState.get(
           "marks",
           []
         );
@@ -80,7 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
   let listMarks = vscode.commands.registerCommand(
     "extension.listMarks",
     async () => {
-      const marks = context.workspaceState.get("marks", []);
+      const marks: Mark[] = context.workspaceState.get("marks", []);
       const marksToBeListed = marks.map((mark: Mark) => {
         return `${mark.name} (${mark.file.name} [${mark.line}])`;
       });
@@ -92,14 +92,18 @@ export function activate(context: vscode.ExtensionContext) {
           const mark: Mark | undefined = marks.find((mark: Mark) => {
             return mark.file.name?.trim() === match[0].trim();
           });
-          if (mark) {
-            const fileUri = mark!.file.uri;
+          const fileUri = mark?.file.uri;
 
-            if (fileUri !== undefined) {
-              vscode.workspace.openTextDocument(fileUri.fsPath).then(doc => {
-                vscode.window.showTextDocument(doc);
-              });
-            }
+          if (fileUri) {
+            const path = fileUri.fsPath;
+            const doc = await vscode.workspace.openTextDocument(path);
+            const editor = await vscode.window.showTextDocument(doc);
+
+            // go to the mark's line
+            editor.selection = new vscode.Selection(
+              editor.selection.active.with(mark?.line),
+              editor.selection.active.with(mark?.line)
+            );
           }
         } else {
           vscode.window.showErrorMessage("Unable to open the bookmark.");
