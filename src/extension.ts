@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 
 type Mark = {
+  name: string;
   id: string;
   file: {
     name: string | undefined;
@@ -31,16 +32,23 @@ export function activate(context: vscode.ExtensionContext) {
 
       // check if there is no selection
       if (editor?.selection.isEmpty) {
+        const name = await vscode.window.showInputBox({
+          placeHolder: "e.g. Fix later"
+        });
+
+        if (!name?.trim()) {
+          return;
+        }
+
         const position = editor.selection.active;
         const line = position.line;
-
-        vscode.window.showInformationMessage(`Line: ${line}`);
 
         const marksFromState: Number[] = context.workspaceState.get(
           "marks",
           []
         );
         const newMark: Mark = {
+          name,
           id: buildFileId(line, editor),
           file: {
             name: getFileName(editor),
@@ -72,10 +80,10 @@ export function activate(context: vscode.ExtensionContext) {
   let listMarks = vscode.commands.registerCommand("extension.listMarks", () => {
     const marks = context.workspaceState.get("marks", []);
     const marksToBeListed = marks.map((mark: Mark) => {
-      return `${mark.file.name} [${mark.line}]`;
+      return `${mark.name} (${mark.file.name} [${mark.line}])`;
     });
     vscode.window.showQuickPick(marksToBeListed);
   });
 
-  context.subscriptions.push(setMark, clearMarks);
+  context.subscriptions.push(setMark, clearMarks, listMarks);
 }
