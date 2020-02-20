@@ -92,18 +92,20 @@ export function activate(context: vscode.ExtensionContext) {
           const mark: Mark | undefined = marks.find((mark: Mark) => {
             return mark.file.name?.trim() === match[0].trim();
           });
-          const fileUri = mark?.file.uri;
+          if (mark) {
+            const fileUri = mark.file.uri;
 
-          if (fileUri) {
-            const path = fileUri.fsPath;
-            const doc = await vscode.workspace.openTextDocument(path);
-            const editor = await vscode.window.showTextDocument(doc);
-
-            // go to the mark's line
-            editor.selection = new vscode.Selection(
-              editor.selection.active.with(mark?.line),
-              editor.selection.active.with(mark?.line)
-            );
+            if (fileUri !== undefined) {
+              vscode.workspace.openTextDocument(fileUri.fsPath).then(doc => {
+                vscode.window.showTextDocument(doc).then(editor => {
+                  // go to the mark's line
+                  editor.selection = new vscode.Selection(
+                    editor.selection.active.with(mark?.line || 0),
+                    editor.selection.active.with(mark?.line || 0)
+                  );
+                });
+              });
+            }
           }
         } else {
           vscode.window.showErrorMessage("Unable to open the bookmark.");
