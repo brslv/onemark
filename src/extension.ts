@@ -10,6 +10,22 @@ type Mark = {
   line: number;
 };
 
+function createMark(
+  name: string,
+  line: number,
+  editor: vscode.TextEditor
+): Mark {
+  return {
+    name,
+    id: buildFileId(line, editor),
+    file: {
+      name: getFileName(editor),
+      uri: getFileUri(editor)
+    },
+    line
+  };
+}
+
 function getFileName(editor?: vscode.TextEditor) {
   return editor?.document.fileName;
 }
@@ -40,22 +56,12 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
-        const position = editor.selection.active;
-        const line = position.line;
-
+        const line = editor.selection.active.line;
         const marksFromState: number[] = context.workspaceState.get(
           "marks",
           []
         );
-        const newMark: Mark = {
-          name,
-          id: buildFileId(line, editor),
-          file: {
-            name: getFileName(editor),
-            uri: getFileUri(editor)
-          },
-          line
-        };
+        const newMark: Mark = createMark(name, line, editor);
         await context.workspaceState.update("marks", [
           ...marksFromState,
           newMark
