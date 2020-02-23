@@ -86,11 +86,18 @@ export function activate(context: vscode.ExtensionContext) {
       });
       const choice = await vscode.window.showQuickPick(marksToBeListed);
       if (choice) {
-        const pattern = /(\/.+?(\s(?=\[)))/gim;
-        const match = choice.match(pattern);
-        if (match && match.length) {
+        const pattern = /(\/.+?(\s(?=\[)))/gim; // a string starting with / up until a [ is met
+        const linePattern = /(?<=\[)(\d+)(?=\])/gim; // a number between []
+        const fileMatch = choice.match(pattern);
+        const lineMatch = choice.match(linePattern);
+        if (fileMatch && fileMatch.length && lineMatch && lineMatch.length) {
           const mark: Mark | undefined = marks.find((mark: Mark) => {
-            return mark.file.name?.trim() === match[0].trim();
+            const markFileMatchesSelected =
+              mark.file.name?.trim() === fileMatch[0].trim();
+            const markLineMatchesSelected =
+              Number(mark.line) === Number(lineMatch[0].trim());
+
+            return markFileMatchesSelected && markLineMatchesSelected;
           });
           if (mark) {
             const fileUri = mark.file.uri;
