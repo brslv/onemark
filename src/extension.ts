@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { storage } from "./storage";
 
 type Mark = {
   name: string;
@@ -25,6 +26,7 @@ function createMark(
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  const store = storage(context);
   let setMark = vscode.commands.registerCommand(
     "extension.setMark",
     async () => {
@@ -41,15 +43,9 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
-        const line = editor.selection.active.line;
-        const marksFromState: number[] = context.workspaceState.get(
-          "marks",
-          []
-        );
-        const newMark: Mark = createMark(name, line, editor);
-        await context.workspaceState.update("marks", [
-          ...marksFromState,
-          newMark
+        await store.update("marks", [
+          ...store.get("marks", []),
+          createMark(name, editor.selection.active.line, editor)
         ]);
       } else {
         vscode.window.showErrorMessage(`Couldn't create a mark.`);
@@ -60,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
   let clearMarks = vscode.commands.registerCommand(
     "extension.clearMarks",
     async () => {
-      await context.workspaceState.update("marks", []);
+      await store.update("marks", []);
       vscode.window.showInformationMessage("All marks cleared successfully.");
     }
   );
@@ -68,7 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
   let listMarks = vscode.commands.registerCommand(
     "extension.listMarks",
     async () => {
-      const marks: Mark[] = context.workspaceState.get("marks", []);
+      const marks: Mark[] = store.get("marks", []);
       const marksToBeListed = marks.map((mark: Mark) => {
         return `${mark.name} (${mark.file.name} [${mark.line}])`;
       });
