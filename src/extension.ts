@@ -63,9 +63,6 @@ export function activate(context: vscode.ExtensionContext) {
       } else {
         vscode.window.showErrorMessage(`Couldn't create a mark.`);
       }
-
-      const savedMarks = await context.workspaceState.get("marks");
-      console.log(savedMarks);
     }
   );
 
