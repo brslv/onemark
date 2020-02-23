@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 
 type Mark = {
   name: string;
-  id: string;
   file: {
     name: string | undefined;
     uri: vscode.Uri | undefined;
@@ -17,26 +16,12 @@ function createMark(
 ): Mark {
   return {
     name,
-    id: buildFileId(line, editor),
     file: {
-      name: getFileName(editor),
-      uri: getFileUri(editor)
+      name: editor?.document.fileName,
+      uri: editor?.document.uri
     },
     line
   };
-}
-
-function getFileName(editor?: vscode.TextEditor) {
-  return editor?.document.fileName;
-}
-
-function getFileUri(editor?: vscode.TextEditor) {
-  return editor?.document.uri;
-}
-
-function buildFileId(line: number, editor?: vscode.TextEditor) {
-  const uri = getFileUri(editor);
-  return `${uri?.path}___line___${line}`;
 }
 
 export function activate(context: vscode.ExtensionContext) {
