@@ -1,32 +1,11 @@
 import * as vscode from "vscode";
 import { storage } from "./storage";
-
-type Mark = {
-  name: string;
-  file: {
-    name: string | undefined;
-    uri: vscode.Uri | undefined;
-  };
-  line: number;
-};
-
-function createMark(
-  name: string,
-  line: number,
-  editor: vscode.TextEditor
-): Mark {
-  return {
-    name,
-    file: {
-      name: editor?.document.fileName,
-      uri: editor?.document.uri
-    },
-    line
-  };
-}
+import { createMark } from "./createMark";
+import { Mark } from "./types";
 
 export function activate(context: vscode.ExtensionContext) {
   const store = storage(context);
+
   let setMark = vscode.commands.registerCommand(
     "extension.setMark",
     async () => {
