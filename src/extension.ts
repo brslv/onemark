@@ -1,7 +1,10 @@
 import * as vscode from "vscode";
-import { storage } from "./storage";
-import { createMark } from "./createMark";
+import { storage, createMark, goToLine, openDocInEditor } from "./utils";
 import { Mark } from "./types";
+
+const CONTANTS = {
+  MARKS: "marks"
+};
 
 export function activate(context: vscode.ExtensionContext) {
   const store = storage(context);
@@ -9,10 +12,8 @@ export function activate(context: vscode.ExtensionContext) {
   let setMark = vscode.commands.registerCommand(
     "extension.setMark",
     async () => {
-      // current editor
       const editor = vscode.window.activeTextEditor;
 
-      // check if there is no selection
       if (editor?.selection.isEmpty) {
         const name = await vscode.window.showInputBox({
           placeHolder: "e.g. Fix later"
@@ -22,8 +23,8 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
-        await store.update("marks", [
-          ...store.get("marks", []),
+        await store.update(CONTANTS.MARKS, [
+          ...store.get(CONTANTS.MARKS, []),
           createMark(name, editor.selection.active.line, editor)
         ]);
       } else {
@@ -35,7 +36,7 @@ export function activate(context: vscode.ExtensionContext) {
   let clearMarks = vscode.commands.registerCommand(
     "extension.clearMarks",
     async () => {
-      await store.update("marks", []);
+      await store.update(CONTANTS.MARKS, []);
       vscode.window.showInformationMessage("All marks cleared successfully.");
     }
   );
@@ -43,18 +44,19 @@ export function activate(context: vscode.ExtensionContext) {
   let listMarks = vscode.commands.registerCommand(
     "extension.listMarks",
     async () => {
-      const marks: Mark[] = store.get("marks", []);
+      const marks: Mark[] = store.get(CONTANTS.MARKS, []);
       const marksToBeListed = marks.map((mark: Mark) => {
         return `${mark.name} (${mark.file.name} [${mark.line}])`;
       });
       const choice = await vscode.window.showQuickPick(marksToBeListed);
       if (choice) {
-        const pattern = /(\/.+?(\s(?=\[)))/gim; // a string starting with / up until a [ is met
+        const filePattern = /(\/.+?(\s(?=\[)))/gim; // a string starting with / up until a [ is met
         const linePattern = /(?<=\[)(\d+)(?=\])/gim; // a number between []
-        const fileMatch = choice.match(pattern);
+        const fileMatch = choice.match(filePattern);
         const lineMatch = choice.match(linePattern);
+
         if (fileMatch && fileMatch.length && lineMatch && lineMatch.length) {
-          const mark: Mark | undefined = marks.find((mark: Mark) => {
+          const mark = marks.find(mark => {
             const markFileMatchesSelected =
               mark.file.name?.trim() === fileMatch[0].trim();
             const markLineMatchesSelected =
@@ -62,20 +64,10 @@ export function activate(context: vscode.ExtensionContext) {
 
             return markFileMatchesSelected && markLineMatchesSelected;
           });
-          if (mark) {
-            const fileUri = mark.file.uri;
 
-            if (fileUri !== undefined) {
-              vscode.workspace.openTextDocument(fileUri.fsPath).then(doc => {
-                vscode.window.showTextDocument(doc).then(editor => {
-                  // go to the mark's line
-                  editor.selection = new vscode.Selection(
-                    editor.selection.active.with(mark?.line || 0),
-                    editor.selection.active.with(mark?.line || 0)
-                  );
-                });
-              });
-            }
+          if (mark && mark.file.uri !== undefined) {
+            const editor = await openDocInEditor(mark.file.uri.fsPath);
+            goToLine(mark?.line || 0, editor);
           }
         } else {
           vscode.window.showErrorMessage("Unable to open the bookmark.");
