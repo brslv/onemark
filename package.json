@@ -11,6 +11,7 @@
 	],
 	"activationEvents": [
 		"onCommand:extension.setMark",
+		"onCommand:extension.removeMark",
 		"onCommand:extension.clearMarks",
 		"onCommand:extension.listMarks"
 	],
@@ -22,8 +23,12 @@
 				"title": "[onemark]: Set Mark"
 			},
 			{
+				"command": "extension.removeMark",
+				"title": "[onemark]: Remove Mark"
+			},
+			{
 				"command": "extension.listMarks",
-				"title": "[onemark]: List marks"
+				"title": "[onemark]: List Marks"
 			},
 			{
 				"command": "extension.clearMarks",

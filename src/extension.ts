@@ -9,6 +9,25 @@ const CONTANTS = {
 export function activate(context: vscode.ExtensionContext) {
   const store = storage(context);
 
+  function listMarksAndChoose(marks: Mark[]) {
+    const marksToBeListed = marks.map((mark: Mark) => {
+      return `${mark.name} (${mark.file.name} [${mark.line}])`;
+    });
+    return vscode.window.showQuickPick(marksToBeListed);
+  }
+
+  function extractMarkInfoFromChoiceString(choice: string) {
+    const filePattern = /(\/.+?(\s(?=\[)))/gim; // a string starting with / up until a [ is met
+    const linePattern = /(?<=\[)(\d+)(?=\])/gim; // a number between []
+    const fileMatch = choice.match(filePattern);
+    const lineMatch = choice.match(linePattern);
+
+    return {
+      file: fileMatch && fileMatch.length ? fileMatch[0].trim() : null,
+      line: lineMatch && lineMatch.length ? Number(lineMatch[0].trim()) : null
+    };
+  }
+
   let setMark = vscode.commands.registerCommand(
     "extension.setMark",
     async () => {
@@ -33,6 +52,26 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  let removeMark = vscode.commands.registerCommand(
+    "extension.removeMark",
+    async () => {
+      const marks: Mark[] = store.get(CONTANTS.MARKS, []);
+      const choice = await listMarksAndChoose(marks);
+      if (choice) {
+        const { file, line } = extractMarkInfoFromChoiceString(choice);
+
+        await store.update(
+          CONTANTS.MARKS,
+          marks.filter(
+            mark => !(mark.file?.name === file && Number(mark.line) === line)
+          )
+        );
+
+        vscode.window.setStatusBarMessage("Mark removed sucessfully.");
+      }
+    }
+  );
+
   let clearMarks = vscode.commands.registerCommand(
     "extension.clearMarks",
     async () => {
@@ -45,22 +84,15 @@ export function activate(context: vscode.ExtensionContext) {
     "extension.listMarks",
     async () => {
       const marks: Mark[] = store.get(CONTANTS.MARKS, []);
-      const marksToBeListed = marks.map((mark: Mark) => {
-        return `${mark.name} (${mark.file.name} [${mark.line}])`;
-      });
-      const choice = await vscode.window.showQuickPick(marksToBeListed);
-      if (choice) {
-        const filePattern = /(\/.+?(\s(?=\[)))/gim; // a string starting with / up until a [ is met
-        const linePattern = /(?<=\[)(\d+)(?=\])/gim; // a number between []
-        const fileMatch = choice.match(filePattern);
-        const lineMatch = choice.match(linePattern);
+      const choice = await listMarksAndChoose(marks);
 
-        if (fileMatch && fileMatch.length && lineMatch && lineMatch.length) {
+      if (choice) {
+        const { file, line } = extractMarkInfoFromChoiceString(choice);
+
+        if (file && line) {
           const mark = marks.find(mark => {
-            const markFileMatchesSelected =
-              mark.file.name?.trim() === fileMatch[0].trim();
-            const markLineMatchesSelected =
-              Number(mark.line) === Number(lineMatch[0].trim());
+            const markFileMatchesSelected = mark.file.name?.trim() === file;
+            const markLineMatchesSelected = Number(mark.line) === line;
 
             return markFileMatchesSelected && markLineMatchesSelected;
           });
