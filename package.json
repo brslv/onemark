@@ -1,6 +1,7 @@
 {
   "name": "onemark",
   "publisher": "brslvg",
+  "icon": "images/logo.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/brslv/onemark.git"

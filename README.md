@@ -4,7 +4,7 @@ Onemark is a simplistic, straight to the point bookmarking extension. You can sa
 
 ## Features
 
-\!\[Demo\]\(images/demo.gif\)
+![Demo](images/demo.gif)
 
 The most important feature of this extension is it's simplicity. It basically does four things and it does them well.
 
