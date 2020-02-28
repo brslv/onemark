@@ -108,5 +108,5 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(setMark, clearMarks, listMarks);
+  context.subscriptions.push(setMark, removeMark, clearMarks, listMarks);
 }
