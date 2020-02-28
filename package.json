@@ -6,7 +6,7 @@
     "url": "https://github.com/brslv/onemark.git"
   },
   "displayName": "onemark",
-  "description": "Collect lines in your code and quickly navigate to them.",
+  "description": "Simplistic, straight to the point bookmarking tool.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.42.0"
