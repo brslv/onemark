@@ -1,6 +1,10 @@
 {
   "name": "onemark",
   "publisher": "brslvg",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brslv/onemark.git"
+  },
   "displayName": "onemark",
   "description": "Collect lines in your code and quickly navigate to them.",
   "version": "0.0.1",
