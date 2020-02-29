@@ -6,6 +6,10 @@
     "type": "git",
     "url": "https://github.com/brslv/onemark.git"
   },
+  "bugs": {
+    "url": "https://github.com/brslv/onemark/issues",
+    "email": "borislav.b.grigorov@gmail.com"
+  },
   "displayName": "onemark",
   "description": "Simplistic, straight to the point bookmarking tool.",
   "version": "0.0.2",

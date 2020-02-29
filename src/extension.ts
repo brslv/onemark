@@ -33,6 +33,12 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       const editor = vscode.window.activeTextEditor;
 
+      if (editor?.document.uri.scheme === "untitled") {
+        return vscode.window.showErrorMessage(
+          "Cannot set marks on unsaved files."
+        );
+      }
+
       if (editor?.selection.isEmpty) {
         const name = await vscode.window.showInputBox({
           placeHolder: "e.g. Fix later"

@@ -25,6 +25,11 @@ No known issues.
 
 ## Release Notes
 
+### 0.0.2
+
+Don't allow setting marks on unsaved files
+Add "bugs" field to the manifest
+
 ### 0.0.1
 
 Initial release of onemark
