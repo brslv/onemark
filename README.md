@@ -25,7 +25,7 @@ No known issues.
 
 ## Release Notes
 
-### 0.0.2
+### 0.0.3
 
 Don't allow setting marks on unsaved files
 Add "bugs" field to the manifest
